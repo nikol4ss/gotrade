@@ -7,7 +7,7 @@ const mode = useColorMode()
 function toggleTheme() {
   if (mode.value === 'light') mode.value = 'dark'
   else if (mode.value === 'dark') mode.value = 'light'
-  else mode.value = 'light' // caso seja 'system'
+  else mode.value = 'light' 
 }
 </script>
 

@@ -37,7 +37,8 @@ const data = {
       items: [
         {
           title: "Market",
-          url: "#",
+          url: "/crypto/market",
+          meta: { breadcrumb: ["Crypto", "Market"] },
         },
         {
           title: "QI Invest",
@@ -105,7 +106,7 @@ const data = {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" as-child>
-            <a href="#">
+            <a href="/dashboad">
               <div
                 class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <CircleDollarSign class="size-4" />

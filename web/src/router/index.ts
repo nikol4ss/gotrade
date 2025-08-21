@@ -1,14 +1,23 @@
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router"
 
-import Dashboard from '../pages/dashboard/Dashboard.vue'
+import Layout from "@/pages/Layout.vue"
+import Dashboard from "@/pages/Dashboard.vue"
 
+import CryptoMarket from "@/pages/Crypto/CryptoMarket.vue"
 
 const routes = [
-  { path: '/', redirect: '/dashboard' },
-  { path: '/dashboard', component: Dashboard },
+  {
+    path: "/",
+    component: Layout,
+    children: [
+      { path: "dashboad", component: Dashboard, meta: { breadcrumb: "Dashboard" } },
+      { path: "crypto/market", component: CryptoMarket, meta: { breadcrumb: ["Crypto", "Market"] } },
+      // { path: "stocks/market", component: StocksMarket, meta: { breadcrumb: ["Stocks", "Market"] } },
+    ],
+  },
 ]
 
 export const router = createRouter({
-  history: createMemoryHistory(),
+  history: createWebHistory(),
   routes,
 })
