@@ -1,26 +1,29 @@
 <script setup lang="ts">
-import { BarChart } from "@/components/ui/chart-bar"
+import { BarChart as BaseBarChart } from "@/components/ui/chart-bar"
+import { type PropType } from "vue"
 
-const data = [
-  { name: "Jan", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-  { name: "Feb", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-  { name: "Mar", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-  { name: "Apr", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-  { name: "May", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-  { name: "Jun", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-  { name: "Jul", total: Math.floor(Math.random() * 2000) + 500, predicted: Math.floor(Math.random() * 2000) + 500 },
-]
+interface ChartData {
+  name: string
+  [key: string]: number | string
+}
+
+const props = defineProps({
+  data: { type: Array as PropType<ChartData[]>, required: true },
+  categories: { type: Array as PropType<string[]>, required: true },
+  colors: { type: Array as PropType<string[]>, default: () => ['blue', 'pink', 'orange', 'red'] },
+  yFormatter: {
+    type: Function as PropType<(tick: number | Date, i: number, ticks: (number | Date)[]) => string>,
+    default: undefined
+  }
+})
 </script>
 
 <template>
-  <BarChart
-    :data="data"
+  <BaseBarChart
+    :data="props.data"
     index="name"
-    :categories="['total', 'predicted']"
-    :y-formatter="(tick, _i) => {
-      return typeof tick === 'number'
-        ? `$ ${new Intl.NumberFormat('us').format(tick).toString()}`
-        : ''
-    }"
+    :categories="props.categories"
+    :colors="props.colors"
+    :y-formatter="props.yFormatter"
   />
 </template>

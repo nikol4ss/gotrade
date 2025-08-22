@@ -1,51 +1,29 @@
 <script setup lang="ts">
-import { DonutChart } from "@/components/ui/chart-donut"
+import { DonutChart as BaseDonutChart } from "@/components/ui/chart-donut"
+import { type PropType } from "vue"
 
-const data = [
-  {
-    name: "Jan",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Feb",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Mar",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Apr",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "May",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-  {
-    name: "Jun",
-    total: Math.floor(Math.random() * 2000) + 500,
-    predicted: Math.floor(Math.random() * 2000) + 500,
-  },
-]
-
-function valueFormatter(tick: number | Date) {
-  return typeof tick === "number"
-    ? `$ ${new Intl.NumberFormat("us").format(tick).toString()}`
-    : ""
+interface ChartData {
+  name: string
+  [key: string]: number | string
 }
+
+const props = defineProps({
+  data: { type: Array as PropType<ChartData[]>, required: true },
+  category: { type: String, required: true },
+  colors: { type: Array as PropType<string[]>, default: () => ['blue','pink','orange','red'] },
+  valueFormatter: {
+    type: Function as PropType<(tick: number | Date, i?: number, ticks?: (number | Date)[]) => string>,
+    default: undefined
+  }
+})
 </script>
 
 <template>
-  <DonutChart
+  <BaseDonutChart
+    :data="props.data"
+    :category="props.category"
+    :colors="props.colors"
+    :value-formatter="props.valueFormatter"
     index="name"
-    :category="'total'"
-    :data="data"
-    :value-formatter="valueFormatter"
   />
 </template>
