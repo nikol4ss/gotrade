@@ -45,9 +45,10 @@ const crumbs = computed(() => {
         <ToggleTheme />
       </div>
 
-      <main class="p-4">
+      <main class="flex-1 p-4 overflow-x-hidden">
         <router-view />
       </main>
+
     </SidebarInset>
   </SidebarProvider>
 </template>
