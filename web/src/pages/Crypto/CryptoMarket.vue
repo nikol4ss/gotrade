@@ -135,8 +135,8 @@ onMounted(() => {
 
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
         <div class="flex items-center gap-2 mb-2">
-          <PieChart class="w-5 h-5" />
-          <h2 class="text-lg font-semibold">Distribuição de Portfólio</h2>
+          <PieChart class="w-4" />
+          <h2 class="text-base font-semibold">Crypto Sectors</h2>
         </div>
         <DonutChart :data="portfolioDistribution" category="value" :value-formatter="valueFormatter"
           class="flex-1 w-full h-72 md:h-96" />
