@@ -1,12 +1,11 @@
 def format_money(value: float) -> str:
     return f"${value:,.2f}"
 
-
 def map_selector(symbol):
     symbol = symbol.upper()
 
     if symbol in ["BTC", "LTC", "BCH", "DOGE"]:
-        return "Store"
+        return "Store of Value / Payment"
     if symbol in ["ETH", "SOL", "ADA", "AVAX", "BNB"]:
         return "Smart Contracts"
     if symbol in ["USDT", "USDC", "DAI", "BUSD"]:

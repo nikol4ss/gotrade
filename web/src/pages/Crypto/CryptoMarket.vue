@@ -17,11 +17,15 @@ import DonutChart from '@/components/charts/DonutChart.vue';
 import BarChart from '@/components/charts/BarChart.vue';
 import Quotation from '@/components/charts/Quotation.vue';
 
-import { getApiCoin } from '@/services/api.binance.services';
+import { getApiCoin, getApiCryptoSectors } from '@/services/api.binance.services';
+import type { ChartData } from '@/models/api.binance.models';
 import { onMounted, ref } from 'vue';
 
 const coins = ref<any[]>([]);
 
+const chartData = ref<ChartData[]>([]);
+const category = "volume";
+// const colors = ["blue", "pink", "orange", "red"];
 
 // Histórico de preços por cripto
 const priceHistoryData = [
@@ -31,14 +35,6 @@ const priceHistoryData = [
   { name: "Apr", BTC: 31500, ETH: 2200, SOL: 165 },
 ];
 
-// Distribuição de portfólio
-const portfolioDistribution = [
-  { name: "BTC", value: 48.2 },
-  { name: "ETH", value: 17.4 },
-  { name: "SOL", value: 3.5 },
-  { name: "ADA", value: 2.2 },
-  { name: "Outros", value: 28.7 },
-];
 
 // Indicadores técnicos
 const indicatorsData = [
@@ -85,17 +81,16 @@ async function showQuotation() {
 
 const yFormatter = (tick: number | Date) =>
   typeof tick === "number" ? `$ ${new Intl.NumberFormat("us").format(tick)}` : tick.toString();
-const valueFormatter = (tick: number | Date) =>
-  typeof tick === "number" ? `$ ${new Intl.NumberFormat("us").format(tick)}` : tick.toString();
 
-onMounted(() => {
+onMounted(async () => {
   showQuotation();
+  chartData.value = await getApiCryptoSectors();
 });
 </script>
 
 <template>
 
-  <div class="flex flex-col gap-6 p-2 min-w-0">
+  <div class="flex flex-col gap-6 p-2">
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
         <h2 class="text-base font-medium flex items-center">
@@ -124,7 +119,7 @@ onMounted(() => {
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
         <div class="flex items-center gap-2 mb-2">
           <DollarSign class=" w-4" />
-          <h2 class="text-base font-semibold">Cotações</h2>
+          <h2 class="text-base font-semibold">Crypto Quotes</h2>
         </div>
         <Quotation :data="coins" :columns="[
           { key: 'crypto', label: 'Cryptocurrency', align: 'left' },
@@ -138,8 +133,16 @@ onMounted(() => {
           <PieChart class="w-4" />
           <h2 class="text-base font-semibold">Crypto Sectors</h2>
         </div>
-        <DonutChart :data="portfolioDistribution" category="value" :value-formatter="valueFormatter"
-          class="flex-1 w-full h-72 md:h-96" />
+
+        <div class="flex items-center">
+          <div>
+            <DonutChart :data="chartData" :category="category" index="name" type="pie" class="h-95" />
+          </div>
+          <div>
+            <pre>{{ chartData}}</pre>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -150,7 +153,7 @@ onMounted(() => {
         <h2 class="text-lg font-semibold">Histórico de Preços Multi-Cripto</h2>
       </div>
       <LineChart :data="priceHistoryData" :categories="['BTC', 'ETH', 'SOL']" :colors="['blue', 'green', 'orange']"
-        :y-formatter="yFormatter" class="flex-1 w-full h-96" />
+        :y-formatter="yFormatter" class="flex-1 w-full h-29" />
     </div>
 
     <!-- Linha 3: Indicadores + Alertas -->
