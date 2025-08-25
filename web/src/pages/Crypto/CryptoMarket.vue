@@ -100,11 +100,9 @@ onMounted(async () => {
     showCryptoSectors()
   ])
 })
-
 </script>
 
 <template>
-
   <div class="flex flex-col gap-6 p-2">
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
@@ -112,7 +110,7 @@ onMounted(async () => {
           <Coins class="mr-2 w-4" />Market Cap
         </h2>
         <span class="text-2xl font-bold mt-3">{{ marketCap }}</span>
-        <span class="text-xs mt-1 text-muted-foreground">Total market capitalization of the cryptocurrency</span>
+        <span class="text-xs mt-1 text-muted-foreground">Cryptocurrency total market cap</span>
       </div>
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
         <h2 class="text-base font-medium flex items-center">

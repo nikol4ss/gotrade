@@ -35,3 +35,5 @@ def map_selector(symbol):
 
     return "Others"
 
+    # volume_24h = data["data"]["total_volume"]["usd"]
+    # btc_dominance = data["data"]["market_cap_percentage"]["btc"]
