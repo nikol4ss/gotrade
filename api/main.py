@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.router import api_binance_router as binance_routes
+from src.router import api_coingecko_router as coingecko_routes
 
 app = FastAPI()
 
@@ -22,3 +23,4 @@ def root():
     return {"message": "FastAPI active"}
 
 app.include_router(binance_routes.router)
+app.include_router(coingecko_routes.router)

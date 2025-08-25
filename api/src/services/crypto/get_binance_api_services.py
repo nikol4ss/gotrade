@@ -45,3 +45,6 @@ if client:
             sector_volume[setor] = sector_volume.get(setor, 0) + volume
 
         return sector_volume
+
+
+

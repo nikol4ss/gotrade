@@ -31,7 +31,7 @@ const data = {
   navMain: [
     {
       title: "Crypto",
-      url: "#",
+      url: "/crypto/market",
       icon: Bitcoin,
       isActive: true,
       items: [

@@ -3,6 +3,7 @@ import sys
 from fastapi import APIRouter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from services.binance_api_services import connect_api_binance
 from services.crypto.get_binance_api_services import get_top_coins, get_crypto_sectors
 

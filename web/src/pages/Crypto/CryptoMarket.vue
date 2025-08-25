@@ -133,27 +133,21 @@ onMounted(async () => {
           <PieChart class="w-4" />
           <h2 class="text-base font-semibold">Crypto Sectors</h2>
         </div>
-
-        <div class="flex items-center">
-          <div>
-            <DonutChart :data="chartData" :category="category" index="name" type="pie" class="h-95" />
-          </div>
-          <div>
-            <pre>{{ chartData}}</pre>
-          </div>
+        <div class="mt-10 flex justify-center items-center">
+          <DonutChart :data="chartData" :category="category" index="name" type="donut" class="h-85" />
         </div>
-
       </div>
     </div>
 
-    <!-- Linha 2: Histórico de Preços (LineChart grande) -->
     <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
       <div class="flex items-center gap-2 mb-2">
-        <TrendingUp class="w-5 h-5" />
-        <h2 class="text-lg font-semibold">Histórico de Preços Multi-Cripto</h2>
+        <TrendingUp class="w-4" />
+        <h2 class="text-base font-semibold">Multi-Cryptocurrency Price History</h2>
       </div>
-      <LineChart :data="priceHistoryData" :categories="['BTC', 'ETH', 'SOL']" :colors="['blue', 'green', 'orange']"
-        :y-formatter="yFormatter" class="flex-1 w-full h-29" />
+      <div>
+        <LineChart :data="priceHistoryData" :categories="['BTC', 'ETH', 'SOL']" :colors="['blue', 'green', 'orange']"
+          :y-formatter="yFormatter" class="" />
+      </div>
     </div>
 
     <!-- Linha 3: Indicadores + Alertas -->
@@ -210,7 +204,7 @@ onMounted(async () => {
         </div>
         <ul class="text-sm text-muted-foreground space-y-1">
           <li v-for="pair in converterData" :key="pair.pair">{{ pair.pair }} → <span class="font-medium">{{ pair.rate
-          }}</span></li>
+              }}</span></li>
         </ul>
       </div>
 
