@@ -18,7 +18,7 @@ import BarChart from '@/components/charts/BarChart.vue';
 import Quotation from '@/components/charts/Quotation.vue';
 
 import { getApiCoin, getApiCryptoSectors } from '@/services/api.binance.services';
-import { getApiMarketCap } from '@/services/api.coingecko.services';
+import { getApiCoinGecko } from '@/services/api.coingecko.services';
 
 import type { ChartData } from '@/models/api.binance.models';
 import { onMounted, ref } from 'vue';
@@ -26,7 +26,13 @@ import { onMounted, ref } from 'vue';
 const coins = ref<any[]>([]);
 
 const chartData = ref<ChartData[]>([]);
-const marketCap = ref(null)
+
+const coingecko = ref<null | {
+  market_cap: string
+  volume_24h: string
+  btc_dominance: string
+  eth_dominance: string
+}>(null)
 
 const category = "volume";
 
@@ -37,7 +43,6 @@ const priceHistoryData = [
   { name: "Mar", BTC: 29000, ETH: 1900, SOL: 145 },
   { name: "Apr", BTC: 31500, ETH: 2200, SOL: 165 },
 ];
-
 
 // Indicadores técnicos
 const indicatorsData = [
@@ -82,13 +87,14 @@ async function showQuotation() {
   coins.value = await getApiCoin();
 }
 
-async function showMarketCap() {
-  marketCap.value = await getApiMarketCap();
+async function showCoinGecko() {
+  coingecko.value = await getApiCoinGecko()
 }
 
 async function showCryptoSectors() {
   chartData.value = await getApiCryptoSectors();
 }
+
 const yFormatter = (tick: number | Date) =>
   typeof tick === "number" ? `$ ${new Intl.NumberFormat("us").format(tick)}` : tick.toString();
 
@@ -96,8 +102,8 @@ const yFormatter = (tick: number | Date) =>
 onMounted(async () => {
   await Promise.all([
     showQuotation(),
-    showMarketCap(),
-    showCryptoSectors()
+    showCryptoSectors(),
+    showCoinGecko()
   ])
 })
 </script>
@@ -109,21 +115,21 @@ onMounted(async () => {
         <h2 class=" text-base font-medium flex items-center">
           <Coins class="mr-2 w-4" />Market Cap
         </h2>
-        <span class="text-2xl font-bold mt-3">{{ marketCap }}</span>
+        <span class="text-2xl font-bold mt-3">{{ coingecko?.market_cap }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Cryptocurrency total market cap</span>
       </div>
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
         <h2 class="text-base font-medium flex items-center">
           <TrendingUp class="mr-2 w-4" />24h Trading Volume
         </h2>
-        <span class="text-2xl font-bold mt-3">$8.543B</span>
+        <span class="text-2xl font-bold mt-3">{{ coingecko?.volume_24h }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Total traded in the last 24 hours</span>
       </div>
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
         <h2 class="text-base font-medium flex items-center">
           <Percent class="mr-2 w-4" />Market Dominance
         </h2>
-        <span class="text-2xl font-bold mt-3">BTC 48.2% / ETH 17.4%</span>
+        <span class="text-2xl font-bold mt-3">BTC {{ coingecko?.btc_dominance }} ETH {{ coingecko?.eth_dominance }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Share of top cryptocurrencies in the market</span>
       </div>
     </div>

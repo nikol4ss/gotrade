@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export async function getApiMarketCap() {
+export async function getApiCoinGecko() {
     try {
-        const response = await axios.get("http://127.0.0.1:8000/api/coingecko/market-cap")
+        const response = await axios.get("http://127.0.0.1:8000/api/coingecko")
 
         return response.data
     } catch(error: unknown) {
