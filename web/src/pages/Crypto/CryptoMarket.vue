@@ -18,14 +18,17 @@ import BarChart from '@/components/charts/BarChart.vue';
 import Quotation from '@/components/charts/Quotation.vue';
 
 import { getApiCoin, getApiCryptoSectors } from '@/services/api.binance.services';
+import { getApiMarketCap } from '@/services/api.coingecko.services';
+
 import type { ChartData } from '@/models/api.binance.models';
 import { onMounted, ref } from 'vue';
 
 const coins = ref<any[]>([]);
 
 const chartData = ref<ChartData[]>([]);
+const marketCap = ref(null)
+
 const category = "volume";
-// const colors = ["blue", "pink", "orange", "red"];
 
 // Histórico de preços por cripto
 const priceHistoryData = [
@@ -79,13 +82,25 @@ async function showQuotation() {
   coins.value = await getApiCoin();
 }
 
+async function showMarketCap() {
+  marketCap.value = await getApiMarketCap();
+}
+
+async function showCryptoSectors() {
+  chartData.value = await getApiCryptoSectors();
+}
 const yFormatter = (tick: number | Date) =>
   typeof tick === "number" ? `$ ${new Intl.NumberFormat("us").format(tick)}` : tick.toString();
 
+
 onMounted(async () => {
-  showQuotation();
-  chartData.value = await getApiCryptoSectors();
-});
+  await Promise.all([
+    showQuotation(),
+    showMarketCap(),
+    showCryptoSectors()
+  ])
+})
+
 </script>
 
 <template>
@@ -93,10 +108,10 @@ onMounted(async () => {
   <div class="flex flex-col gap-6 p-2">
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
-        <h2 class="text-base font-medium flex items-center">
+        <h2 class=" text-base font-medium flex items-center">
           <Coins class="mr-2 w-4" />Market Cap
         </h2>
-        <span class="text-2xl font-bold mt-3">$57.662B</span>
+        <span class="text-2xl font-bold mt-3">{{ marketCap }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Total market capitalization of the cryptocurrency</span>
       </div>
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
@@ -204,7 +219,7 @@ onMounted(async () => {
         </div>
         <ul class="text-sm text-muted-foreground space-y-1">
           <li v-for="pair in converterData" :key="pair.pair">{{ pair.pair }} → <span class="font-medium">{{ pair.rate
-              }}</span></li>
+          }}</span></li>
         </ul>
       </div>
 
