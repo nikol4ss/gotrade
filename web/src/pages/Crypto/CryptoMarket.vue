@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   DollarSign,
-  PieChart,
   TrendingUp,
   Activity,
   AlertCircle,
@@ -13,30 +12,24 @@ import {
 
 import AreaChart from '@/components/charts/AreaChart.vue';
 import LineChart from '@/components/charts/LineChart.vue';
-import DonutChart from '@/components/charts/DonutChart.vue';
+// import DonutChart from '@/components/charts/DonutChart.vue';
 import BarChart from '@/components/charts/BarChart.vue';
 import Quotation from '@/components/charts/Quotation.vue';
 
-import { getApiCoin, getApiCryptoSectors } from '@/services/api.binance.services';
-import { getApiCoinGecko } from '@/services/api.coingecko.services';
+import { getApiCoinGeckoOverview, getApiCoinGeckoTopCoins } from '@/services/api.coingecko.services';
+import type { CoinQuotationModel } from '@/models/api.coingecko.models';
 
-import type { ChartData } from '@/models/api.binance.models';
 import { onMounted, ref } from 'vue';
 
-const coins = ref<any[]>([]);
+const quotation = ref<CoinQuotationModel[]>([]);
 
-const chartData = ref<ChartData[]>([]);
-
-const coingecko = ref<null | {
-  market_cap: string
-  volume_24h: string
-  btc_dominance: string
-  eth_dominance: string
+const overview = ref<null | {
+  marketcap: string
+  volume: string
+  btc_dom: string
+  eth_dom: string
 }>(null)
 
-const category = "volume";
-
-// Histórico de preços por cripto
 const priceHistoryData = [
   { name: "Jan", BTC: 30000, ETH: 2000, SOL: 150 },
   { name: "Feb", BTC: 31000, ETH: 2100, SOL: 155 },
@@ -44,7 +37,6 @@ const priceHistoryData = [
   { name: "Apr", BTC: 31500, ETH: 2200, SOL: 165 },
 ];
 
-// Indicadores técnicos
 const indicatorsData = [
   { indicator: "RSI BTC", value: 62, status: "Neutral" },
   { indicator: "MACD BTC", value: "+150", status: "Bullish" },
@@ -52,14 +44,12 @@ const indicatorsData = [
   { indicator: "RSI ETH", value: 58, status: "Neutral" },
 ];
 
-// Alertas preventivos
 const alertsData = [
   "RSI sobrecompra BTC",
   "Volatilidade ETH alta",
   "Queda brusca de volume SOL"
 ];
 
-// Top volume
 const topVolume = [
   { name: "BTC", volume: 35 },
   { name: "ETH", volume: 18 },
@@ -67,7 +57,6 @@ const topVolume = [
   { name: "ADA", volume: 0.9 },
 ];
 
-// Estatísticas rápidas
 const marketStats = {
   marketCap: "1.15T",
   volume24h: "85B",
@@ -76,36 +65,27 @@ const marketStats = {
   ethDominance: "17.4%",
 };
 
-// Conversor de cripto simples
 const converterData = [
   { pair: "BTC/USD", rate: 30250 },
   { pair: "ETH/BTC", rate: 0.0677 },
   { pair: "SOL/BTC", rate: 0.006 }
 ];
 
-async function showQuotation() {
-  coins.value = await getApiCoin();
-}
-
-async function showCoinGecko() {
-  coingecko.value = await getApiCoinGecko()
-}
-
-async function showCryptoSectors() {
-  chartData.value = await getApiCryptoSectors();
-}
-
 const yFormatter = (tick: number | Date) =>
   typeof tick === "number" ? `$ ${new Intl.NumberFormat("us").format(tick)}` : tick.toString();
 
+async function showOverview() {
+  overview.value = await getApiCoinGeckoOverview();
+}
+
+async function showQuotation() {
+  quotation.value = await getApiCoinGeckoTopCoins();
+}
 
 onMounted(async () => {
-  await Promise.all([
-    showQuotation(),
-    showCryptoSectors(),
-    showCoinGecko()
-  ])
-})
+  showOverview()
+  showQuotation()
+});
 </script>
 
 <template>
@@ -115,48 +95,47 @@ onMounted(async () => {
         <h2 class=" text-base font-medium flex items-center">
           <Coins class="mr-2 w-4" />Market Cap
         </h2>
-        <span class="text-2xl font-bold mt-3">{{ coingecko?.market_cap }}</span>
+        <span class="text-2xl font-bold mt-3">{{ overview?.marketcap }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Cryptocurrency total market cap</span>
       </div>
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
         <h2 class="text-base font-medium flex items-center">
           <TrendingUp class="mr-2 w-4" />24h Trading Volume
         </h2>
-        <span class="text-2xl font-bold mt-3">{{ coingecko?.volume_24h }}</span>
+        <span class="text-2xl font-bold mt-3">{{ overview?.volume }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Total traded in the last 24 hours</span>
       </div>
       <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
         <h2 class="text-base font-medium flex items-center">
           <Percent class="mr-2 w-4" />Market Dominance
         </h2>
-        <span class="text-2xl font-bold mt-3">BTC {{ coingecko?.btc_dominance }} ETH {{ coingecko?.eth_dominance }}</span>
+        <span class="text-2xl font-bold mt-3">BTC {{ overview?.btc_dom }} ETH {{ overview?.eth_dom
+          }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Share of top cryptocurrencies in the market</span>
       </div>
     </div>
 
-    <div class="grid gap-6 md:grid-cols-2">
-      <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
-        <div class="flex items-center gap-2 mb-2">
-          <DollarSign class=" w-4" />
-          <h2 class="text-base font-semibold">Crypto Quotes</h2>
-        </div>
-        <Quotation :data="coins" :columns="[
-          { key: 'crypto', label: 'Cryptocurrency', align: 'left' },
-          { key: 'price', label: 'Price (USD)', align: 'center' },
-          { key: 'volume', label: '24h Volume', align: 'right' },
-        ]" />
+    <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
+      <div class="flex items-center gap-2 mb-2">
+        <DollarSign class=" w-4" />
+        <h2 class="text-base font-semibold">Crypto Quotes</h2>
       </div>
+      <Quotation :data="quotation" :columns="[
+        { key: 'display_name', label: 'Cryptocurrency', align: 'left' },
+        { key: 'price', label: 'Price (USD)', align: 'center' },
+        { key: 'market_cap', label: 'Market Cap', align: 'right' },
+        { key: 'volume', label: '24h Volume', align: 'right' },
+        { key: 'price_change_percentage_24h', label: 'Change 24h (%)', align: 'center' },
+        { key: 'price_change_24h', label: 'Change 24h (USD)', align: 'center' },
+        { key: 'high_24h', label: '24h High', align: 'right' },
+        { key: 'low_24h', label: '24h Low', align: 'right' },
+        { key: 'circulating_supply', label: 'Circulating Supply', align: 'right' }
+      ]" />
 
-      <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
-        <div class="flex items-center gap-2 mb-2">
-          <PieChart class="w-4" />
-          <h2 class="text-base font-semibold">Crypto Sectors</h2>
-        </div>
-        <div class="mt-10 flex justify-center items-center">
-          <DonutChart :data="chartData" :category="category" index="name" type="donut" class="h-85" />
-        </div>
-      </div>
+
+
     </div>
+
 
     <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
       <div class="flex items-center gap-2 mb-2">
@@ -223,7 +202,7 @@ onMounted(async () => {
         </div>
         <ul class="text-sm text-muted-foreground space-y-1">
           <li v-for="pair in converterData" :key="pair.pair">{{ pair.pair }} → <span class="font-medium">{{ pair.rate
-          }}</span></li>
+              }}</span></li>
         </ul>
       </div>
 

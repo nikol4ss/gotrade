@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, HTTPException, Query
 
 from src.docs.response import ERROR_RESPONSES
@@ -37,7 +38,7 @@ def get_api_coingecko_overview():
         "Retrieves the top cryptocurrencies from CoinGecko, "
         "including name, symbol, current price, and trading volume."
     ),
-    response_model=TopCoinModel,
+    response_model=List[TopCoinModel],
     responses=ERROR_RESPONSES,
 )
 def get_api_coingecko_topcoins(

@@ -38,7 +38,16 @@ defineProps({
       <TableRow v-for="(row, i) in data" :key="i">
         <TableCell v-for="col in columns" :key="col.key"
           :class="col.align === 'center' ? 'text-center font-medium' : col.align === 'right' ? 'text-right font-medium' : 'text-left font-medium'">
-          {{ row[col.key] }}
+
+          <template v-if="col.key === 'display_name'">
+            <span class="font-bold mr-1">{{ row.display_name.split(' - ')[0] }}</span>
+            <span class="text-xs text-muted-foreground">{{ row.display_name.split(' - ')[1] }}</span>
+          </template>
+
+          <template v-else>
+            {{ row[col.key] }}
+          </template>
+
         </TableCell>
       </TableRow>
     </TableBody>

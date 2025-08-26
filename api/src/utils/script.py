@@ -2,6 +2,17 @@ def format_money(value: float) -> str:
     return f"${value:,.2f}"
 
 
+def format_number_short(n):
+    if n >= 1_000_000_000:
+        return f"{n/1_000_000_000:.2f}B"
+    elif n >= 1_000_000:
+        return f"{n/1_000_000:.2f}M"
+    elif n >= 1_000:
+        return f"{n/1_000:.2f}K"
+    else:
+        return str(n)
+
+
 def map_selector(symbol):
     symbol = symbol.upper()
 
@@ -34,6 +45,7 @@ def map_selector(symbol):
         return "Utility / Payment Network"
 
     return "Others"
+
 
 def format_porcent(value: float):
     return f"%{value:.2f}"
