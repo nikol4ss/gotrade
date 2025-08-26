@@ -12,4 +12,5 @@ export interface CoinQuotationModel {
   high_24h: string;
   low_24h: string;
   circulating_supply: string;
+  logo: string;
 }

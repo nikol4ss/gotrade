@@ -4,13 +4,21 @@ def format_money(value: float) -> str:
 
 def format_number_short(n):
     if n >= 1_000_000_000:
-        return f"{n/1_000_000_000:.2f}B"
+        return f"${n/1_000_000_000:.2f}B"
     elif n >= 1_000_000:
-        return f"{n/1_000_000:.2f}M"
+        return f"${n/1_000_000:.2f}M"
     elif n >= 1_000:
-        return f"{n/1_000:.2f}K"
+        return f"${n/1_000:.2f}K"
     else:
         return str(n)
+
+
+def format_dollar_invert(value: str) -> str:
+    if value.startswith("$-"):
+        return "-$" + value[2:]
+    elif value.startswith("-$"):
+        return "$-" + value[2:]
+    return value
 
 
 def map_selector(symbol):

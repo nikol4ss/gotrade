@@ -21,3 +21,4 @@ class TopCoinModel(BaseModel):
     high_24h: str
     low_24h: str
     circulating_supply: str
+    logo: str

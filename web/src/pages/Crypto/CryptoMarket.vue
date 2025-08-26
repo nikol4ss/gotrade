@@ -8,11 +8,17 @@ import {
   BookOpen,
   Coins,
   Percent,
+  CircleQuestionMark,
 } from 'lucide-vue-next';
+
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card'
 
 import AreaChart from '@/components/charts/AreaChart.vue';
 import LineChart from '@/components/charts/LineChart.vue';
-// import DonutChart from '@/components/charts/DonutChart.vue';
 import BarChart from '@/components/charts/BarChart.vue';
 import Quotation from '@/components/charts/Quotation.vue';
 
@@ -90,47 +96,94 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col gap-6 p-2">
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
-        <h2 class=" text-base font-medium flex items-center">
-          <Coins class="mr-2 w-4" />Market Cap
+
+    <div class="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
+      <div class="rounded-2xl bg-muted/50 p-3 flex flex-col">
+        <h2 class="text-base font-medium flex items-center justify-between">
+          <span class="flex items-center">
+            <Coins class="mr-2 w-4" />
+            Market Cap
+          </span>
+          <HoverCard>
+            <HoverCardTrigger>
+              <CircleQuestionMark class="w-4 cursor-help" />
+            </HoverCardTrigger>
+            <HoverCardContent class="text-xs text-muted-foreground">
+              Total value of all cryptocurrencies in circulation, representing the combined market capitalization.
+            </HoverCardContent>
+          </HoverCard>
         </h2>
-        <span class="text-2xl font-bold mt-3">{{ overview?.marketcap }}</span>
-        <span class="text-xs mt-1 text-muted-foreground">Cryptocurrency total market cap</span>
+
+        <div class="flex items-center justify-between mt-6">
+          <span class="text-2xl font-bold">{{ overview?.marketcap }}</span>
+          <span class="text-xs text-muted-foreground">USD</span>
+        </div>
       </div>
-      <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
-        <h2 class="text-base font-medium flex items-center">
-          <TrendingUp class="mr-2 w-4" />24h Trading Volume
+
+      <div class="rounded-2xl bg-muted/50 p-3 flex flex-col">
+        <h2 class="text-base font-medium flex items-center justify-between">
+          <span class="flex items-center">
+            <TrendingUp class="mr-2 w-4" />
+            24h Volume
+          </span>
+          <HoverCard>
+            <HoverCardTrigger>
+              <CircleQuestionMark class="w-4 cursor-help" />
+            </HoverCardTrigger>
+            <HoverCardContent class="text-xs text-muted-foreground">
+              Total value of all cryptocurrency transactions executed in the past 24 hours across the market.
+            </HoverCardContent>
+          </HoverCard>
         </h2>
-        <span class="text-2xl font-bold mt-3">{{ overview?.volume }}</span>
-        <span class="text-xs mt-1 text-muted-foreground">Total traded in the last 24 hours</span>
+
+        <div class="flex items-center justify-between mt-6">
+          <span class="text-2xl font-bold">{{ overview?.volume }}</span>
+          <span class="text-xs text-muted-foreground">USD</span>
+        </div>
       </div>
-      <div class="rounded-2xl bg-muted/50 p-4 flex flex-col">
-        <h2 class="text-base font-medium flex items-center">
-          <Percent class="mr-2 w-4" />Market Dominance
+
+
+      <div class="rounded-2xl bg-muted/50 p-3 flex flex-col">
+        <h2 class="text-base font-medium flex items-center justify-between">
+          <span class="flex items-center">
+            <Percent class="mr-2 w-4" />
+            Dominance
+          </span>
+          <HoverCard>
+            <HoverCardTrigger>
+              <CircleQuestionMark class="w-4 cursor-help" />
+            </HoverCardTrigger>
+            <HoverCardContent class="text-xs text-muted-foreground">
+              Percentage share of each leading cryptocurrency in the total market capitalization.
+            </HoverCardContent>
+          </HoverCard>
         </h2>
-        <span class="text-2xl font-bold mt-3">BTC {{ overview?.btc_dom }} ETH {{ overview?.eth_dom
-        }}</span>
-        <span class="text-xs mt-1 text-muted-foreground">Share of top cryptocurrencies in the market</span>
+
+        <div class="flex items-center justify-between mt-6">
+          <span class="text-2xl font-bold flex gap-1">
+            BTC<div class="text-muted-foreground mr-2">{{ overview?.btc_dom }}</div>
+            ETH<div class="text-muted-foreground">{{ overview?.eth_dom }}</div>
+          </span>
+        </div>
       </div>
     </div>
 
     <div class="rounded-2xl bg-muted/50 p-4 flex flex-col h-full">
       <div class="flex items-center gap-2 mb-2">
         <DollarSign class=" w-4" />
-        <h2 class="text-base font-semibold">Crypto Quotes</h2>
+        <h2 class="text-base font-semibold">Quotes</h2>
       </div>
       <Quotation :data="quotation" :columns="[
-        { key: 'market_cap_rank', label: '', align: 'left' },
-        { key: 'display_name', label: 'Cryptocurrency', align: 'left' },
-        { key: 'price', label: 'Price (USD)', align: 'right' },
-        { key: 'market_cap', label: 'Market Cap', align: 'right' },
-        { key: 'volume', label: '24h Volume', align: 'right' },
-        { key: 'price_change_percentage_24h', label: 'Change 24h (%)', align: 'right' },
-        { key: 'price_change_24h', label: 'Change 24h', align: 'right' },
-        { key: 'high_24h', label: '24h High', align: 'right' },
-        { key: 'low_24h', label: '24h Low', align: 'right' },
-        { key: 'circulating_supply', label: 'Circulating Supply', align: 'right' }
+        { key: 'market_cap_rank', label: '', align: 'left', },
+        { key: 'display_name', label: 'Crypto', align: 'left', },
+        { key: 'price', label: 'Price', align: 'left' },
+        { key: 'market_cap', label: 'Market Cap', align: 'left' },
+        { key: 'volume', label: 'Volume 24h', align: 'left' },
+        { key: 'price_change_percentage_24h', label: 'Change %', align: 'left' },
+        { key: 'price_change_24h', label: 'Change 24h', align: 'left' },
+        { key: 'high_24h', label: 'High 24h', align: 'left' },
+        { key: 'low_24h', label: 'Low 24h', align: 'left' },
+        { key: 'circulating_supply', label: 'Supply', align: 'left' }
       ]" />
     </div>
 
@@ -200,7 +253,7 @@ onMounted(async () => {
         </div>
         <ul class="text-sm text-muted-foreground space-y-1">
           <li v-for="pair in converterData" :key="pair.pair">{{ pair.pair }} → <span class="font-medium">{{ pair.rate
-          }}</span></li>
+              }}</span></li>
         </ul>
       </div>
 

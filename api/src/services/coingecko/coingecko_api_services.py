@@ -4,7 +4,7 @@ import requests
 from dotenv import load_dotenv
 
 from fastapi import APIRouter
-from src.utils.script import format_money, format_porcent, format_number_short
+from src.utils.format import format_money, format_porcent, format_number_short, format_dollar_invert
 
 load_dotenv()
 router = APIRouter()
@@ -68,13 +68,14 @@ def get_api_topcoins(limit=10, currency="usd"):
                     "display_name": f"{coin['symbol'].upper()} - {coin['name']}",
                     "market_cap": format_number_short(coin["market_cap"]),
                     "market_cap_rank": coin["market_cap_rank"],
-                    "price_change_24h": f"${coin['price_change_24h']:,.2f}",
+                    "price_change_24h": format_dollar_invert(f"${coin['price_change_24h']:,.2f}"),
                     "price_change_percentage_24h": f"{coin['price_change_percentage_24h']:.2f}%",
                     "high_24h": f"${coin['high_24h']:,.2f}",
                     "low_24h": f"${coin['low_24h']:,.2f}",
                     "circulating_supply": format_number_short(
                         coin["circulating_supply"]
                     ),
+                    "logo": coin["image"],
                 }
             )
 
