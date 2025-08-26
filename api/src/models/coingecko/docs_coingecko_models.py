@@ -15,6 +15,7 @@ class TopCoinModel(BaseModel):
     price: str
     volume: str
     market_cap: str
+    market_cap_rank: int
     price_change_24h: str
     price_change_percentage_24h: str
     high_24h: str

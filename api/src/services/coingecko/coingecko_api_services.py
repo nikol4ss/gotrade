@@ -67,6 +67,7 @@ def get_api_topcoins(limit=10, currency="usd"):
                     "volume": format_number_short(coin["total_volume"]),
                     "display_name": f"{coin['symbol'].upper()} - {coin['name']}",
                     "market_cap": format_number_short(coin["market_cap"]),
+                    "market_cap_rank": coin["market_cap_rank"],
                     "price_change_24h": f"${coin['price_change_24h']:,.2f}",
                     "price_change_percentage_24h": f"{coin['price_change_percentage_24h']:.2f}%",
                     "high_24h": f"${coin['high_24h']:,.2f}",

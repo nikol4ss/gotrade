@@ -110,7 +110,7 @@ onMounted(async () => {
           <Percent class="mr-2 w-4" />Market Dominance
         </h2>
         <span class="text-2xl font-bold mt-3">BTC {{ overview?.btc_dom }} ETH {{ overview?.eth_dom
-          }}</span>
+        }}</span>
         <span class="text-xs mt-1 text-muted-foreground">Share of top cryptocurrencies in the market</span>
       </div>
     </div>
@@ -121,19 +121,17 @@ onMounted(async () => {
         <h2 class="text-base font-semibold">Crypto Quotes</h2>
       </div>
       <Quotation :data="quotation" :columns="[
+        { key: 'market_cap_rank', label: '', align: 'left' },
         { key: 'display_name', label: 'Cryptocurrency', align: 'left' },
-        { key: 'price', label: 'Price (USD)', align: 'center' },
+        { key: 'price', label: 'Price (USD)', align: 'right' },
         { key: 'market_cap', label: 'Market Cap', align: 'right' },
         { key: 'volume', label: '24h Volume', align: 'right' },
-        { key: 'price_change_percentage_24h', label: 'Change 24h (%)', align: 'center' },
-        { key: 'price_change_24h', label: 'Change 24h (USD)', align: 'center' },
+        { key: 'price_change_percentage_24h', label: 'Change 24h (%)', align: 'right' },
+        { key: 'price_change_24h', label: 'Change 24h', align: 'right' },
         { key: 'high_24h', label: '24h High', align: 'right' },
         { key: 'low_24h', label: '24h Low', align: 'right' },
         { key: 'circulating_supply', label: 'Circulating Supply', align: 'right' }
       ]" />
-
-
-
     </div>
 
 
@@ -202,7 +200,7 @@ onMounted(async () => {
         </div>
         <ul class="text-sm text-muted-foreground space-y-1">
           <li v-for="pair in converterData" :key="pair.pair">{{ pair.pair }} → <span class="font-medium">{{ pair.rate
-              }}</span></li>
+          }}</span></li>
         </ul>
       </div>
 
