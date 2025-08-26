@@ -9,6 +9,7 @@ import {
   Coins,
   Percent,
   CircleQuestionMark,
+  LoaderCircleIcon
 } from 'lucide-vue-next';
 
 import {
@@ -80,18 +81,23 @@ const converterData = [
 const yFormatter = (tick: number | Date) =>
   typeof tick === "number" ? `$ ${new Intl.NumberFormat("us").format(tick)}` : tick.toString();
 
-async function showOverview() {
-  overview.value = await getApiCoinGeckoOverview();
-}
-
-async function showQuotation() {
-  quotation.value = await getApiCoinGeckoTopCoins();
-}
+const loadingOverview = ref(true);
+const loadingQuotation = ref(true);
 
 onMounted(async () => {
-  showOverview()
-  showQuotation()
+  try {
+    const [overviewData, quotationData] = await Promise.all([
+      getApiCoinGeckoOverview(),
+      getApiCoinGeckoTopCoins()
+    ]);
+    overview.value = overviewData;
+    quotation.value = quotationData;
+  } finally {
+    loadingOverview.value = false;
+    loadingQuotation.value = false;
+  }
 });
+
 </script>
 
 <template>
@@ -115,7 +121,11 @@ onMounted(async () => {
         </h2>
 
         <div class="flex items-center justify-between mt-6">
-          <span class="text-2xl font-bold">{{ overview?.marketcap }}</span>
+          <div v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+            <LoaderCircleIcon class="size-3 animate-spin " />
+            Fetching updated data
+          </div>
+          <span v-else class="text-2xl font-bold">{{ overview?.marketcap }}</span>
           <span class="text-xs text-muted-foreground">USD</span>
         </div>
       </div>
@@ -137,7 +147,11 @@ onMounted(async () => {
         </h2>
 
         <div class="flex items-center justify-between mt-6">
-          <span class="text-2xl font-bold">{{ overview?.volume }}</span>
+          <div v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+            <LoaderCircleIcon class="size-3 animate-spin" />
+            Fetching updated data
+          </div>
+          <span v-else class="text-2xl font-bold">{{ overview?.volume }}</span>
           <span class="text-xs text-muted-foreground">USD</span>
         </div>
       </div>
@@ -160,7 +174,11 @@ onMounted(async () => {
         </h2>
 
         <div class="flex items-center justify-between mt-6">
-          <span class="text-2xl font-bold flex gap-1">
+          <div v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+            <LoaderCircleIcon class="size-3 animate-spin" />
+            Fetching updated data
+          </div>
+          <span v-else class="text-2xl font-bold flex gap-1">
             BTC<div class="text-muted-foreground mr-2">{{ overview?.btc_dom }}</div>
             ETH<div class="text-muted-foreground">{{ overview?.eth_dom }}</div>
           </span>
@@ -173,7 +191,11 @@ onMounted(async () => {
         <DollarSign class=" w-4" />
         <h2 class="text-base font-semibold">Quotes</h2>
       </div>
-      <Quotation :data="quotation" :columns="[
+      <div v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+        <LoaderCircleIcon class="size-3 animate-spin" />
+        Fetching updated data
+      </div>
+      <Quotation v-else :data="quotation" :columns="[
         { key: 'market_cap_rank', label: '', align: 'left', },
         { key: 'display_name', label: 'Crypto', align: 'left', },
         { key: 'price', label: 'Price', align: 'left' },
