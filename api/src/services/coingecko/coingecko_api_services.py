@@ -70,7 +70,34 @@ def get_api_overview(retries: int = 3, delay: float = 2.0) -> dict[str, str] | N
                 return None
 
 
-def get_api_topcoins(limit=10, currency="usd"):
+def get_api_topcoins(
+    limit: int = 10, currency: str = "usd", retries: int = 3, delay: float = 2.0
+) -> list[dict[str, str]] | None:
+    """Fetch top cryptocurrencies by market capitalization from CoinGecko.
+
+    Parameters:
+        limit (int): Number of top coins to retrieve (default 10).
+        currency (str): Currency to display prices in (default 'usd').
+        retries (int): Number of retry attempts if request fails (default 3).
+        delay (float): Seconds to wait between retry attempts (default 2.0).
+
+    Returns:
+        list[dict[str, str]]: List of top coins with formatted data:
+            - name: Coin name (e.g., 'Bitcoin')
+            - logo: Coin image URL
+            - symbol: Coin symbol (uppercase)
+            - display_name: Symbol and name combined (e.g., 'BTC - Bitcoin')
+            - price: Current price (e.g., '$34,567.89')
+            - market_cap: Market capitalization (e.g., '$1.23B')
+            - volume: 24h trading volume (e.g., '$234.56M')
+            - market_cap_rank: Rank by market cap
+            - price_change_percentage_24h: 24h % change (e.g., '%1.23')
+            - price_change_24h: 24h absolute change (e.g., '$-123.45')
+            - high_24h: Highest price in 24h
+            - low_24h: Lowest price in 24h
+            - circulating_supply: Coins in circulation (e.g., '18.7M')
+        None: If request fails after all retries.
+    """
     url_topcoins = f"{API_URL}coins/markets"
     headers = {"X-CoinGecko-Api-Key": API_KEY}
     params = {
@@ -82,42 +109,54 @@ def get_api_topcoins(limit=10, currency="usd"):
         "price_change_percentage": "1h,24h,7d",
     }
 
-    try:
-        response = requests.get(url_topcoins, params=params, headers=headers)
-        response.raise_for_status()
-        coins = response.json()
-        result = []
-
-        for coin in coins:
-            result.append(
-                {
-                    "name": coin["name"],
-                    "logo": coin["image"],
-                    "symbol": coin["symbol"].upper(),
-                    "display_name": f"{coin['symbol'].upper()} - {coin['name']}",
-                    "price": format_money(coin["current_price"]),
-                    "market_cap": format_number_short(coin["market_cap"]),
-                    "volume": format_number_short(coin["total_volume"]),
-                    "market_cap_rank": coin["market_cap_rank"],
-                    "price_change_percentage_24h": format_money(
-                        coin["price_change_percentage_24h"]
-                    ),
-                    "price_change_24h": format_dollar_invert(
-                        format_money(coin["price_change_24h"])
-                    ),
-                    "high_24h": format_money(coin["high_24h"]),
-                    "low_24h": format_money(coin["low_24h"]),
-                    "circulating_supply": format_number_short(
-                        coin["circulating_supply"]
-                    ),
-                }
+    for attempt in range(1, retries + 1):
+        try:
+            response = requests.get(
+                url_topcoins, params=params, headers=headers, timeout=10
             )
+            response.raise_for_status()
+            coins = response.json()
+            result = []
 
-        return result
+            for coin in coins:
+                result.append(
+                    {
+                        "name": coin["name"],
+                        "logo": coin["image"],
+                        "symbol": coin["symbol"].upper(),
+                        "display_name": f"{coin['symbol'].upper()} - {coin['name']}",
+                        "price": format_money(coin["current_price"]),
+                        "market_cap": format_number_short(coin["market_cap"]),
+                        "volume": format_number_short(coin["total_volume"]),
+                        "market_cap_rank": coin["market_cap_rank"],
+                        "price_change_percentage_24h": format_porcent(
+                            coin["price_change_percentage_24h"]
+                        ),
+                        "price_change_24h": format_dollar_invert(
+                            format_money(coin["price_change_24h"])
+                        ),
+                        "high_24h": format_money(coin["high_24h"]),
+                        "low_24h": format_money(coin["low_24h"]),
+                        "circulating_supply": format_number_short(
+                            coin["circulating_supply"]
+                        ),
+                    }
+                )
 
-    except requests.exceptions.RequestException as error:
-        logging.error("Error in request: %s", error)
-        return None
+            return result
+
+        except requests.exceptions.RequestException as error:
+            logging.error(
+                "Attempt %d/%d failed: %s (URL: %s)",
+                attempt,
+                retries,
+                error,
+                url_topcoins,
+            )
+            if attempt < retries:
+                time.sleep(delay)
+            else:
+                return None
 
 
 def get_api_market_chart(coin_id, days=30, currency="usd"):

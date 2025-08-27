@@ -1,6 +1,5 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, Query
-
 from src.docs.response import ERROR_RESPONSES
 
 from src.services.coingecko.coingecko_api_services import (
@@ -8,6 +7,7 @@ from src.services.coingecko.coingecko_api_services import (
     get_api_topcoins,
     get_api_market_chart,
 )
+
 from src.models.coingecko.docs_coingecko_models import (
     CoinGeckoOverviewModel,
     TopCoinModel,
@@ -50,18 +50,31 @@ def get_api_coingecko_overview(
     summary="Fetch CoinGecko API Top Coins",
     description=(
         "Retrieves the top cryptocurrencies from CoinGecko, "
-        "including name, symbol, current price, and trading volume."
+        "including name, symbol, current price, trading volume, "
+        "market cap, dominance, and 24h price changes."
     ),
     response_model=List[TopCoinModel],
     responses=ERROR_RESPONSES,
 )
 def get_api_coingecko_topcoins(
-    limit: int = Query(10, description="Number of top coins to fetch"),
+    limit: int = Query(10, ge=1, description="Number of top coins to fetch"),
     currency: str = Query("usd", description="Currency to display prices in"),
+    retries: int = Query(
+        3, ge=1, description="Number of retry attempts if request fails"
+    ),
+    delay: float = Query(
+        2.0, ge=0.0, description="Seconds to wait between retry attempts"
+    ),
 ):
-    data = get_api_topcoins(limit=limit, currency=currency)
+    """Endpoint to retrieve top cryptocurrencies by market capitalization."""
+    data = get_api_topcoins(
+        limit=limit, currency=currency, retries=retries, delay=delay
+    )
+
     if not data:
-        raise HTTPException(status_code=500, detail="Unable to fetch data")
+        raise HTTPException(
+            status_code=500, detail="Unable to fetch data from CoinGecko API"
+        )
     return data
 
 
