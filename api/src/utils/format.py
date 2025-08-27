@@ -58,7 +58,7 @@ def format_porcent(value: float) -> str:
     Returns:
         str: Percentage string (e.g., 12.345 -> '%12.35').
     """
-    return f"%{value:.2f}"
+    return f"{value:.2f}%"
 
 
 def format_prices_only(market_chart: dict) -> List[Dict[str, float]]:

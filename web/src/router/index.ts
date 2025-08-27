@@ -12,7 +12,6 @@ const routes = [
     children: [
       { path: "dashboad", component: Dashboard, meta: { breadcrumb: "Dashboard" } },
       { path: "crypto/market", component: CryptoMarket, meta: { breadcrumb: ["Crypto", "Market"] } },
-      // { path: "stocks/market", component: StocksMarket, meta: { breadcrumb: ["Stocks", "Market"] } },
     ],
   },
 ]
