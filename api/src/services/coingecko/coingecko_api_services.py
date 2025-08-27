@@ -1,9 +1,10 @@
 import os
+import time
 import logging
 import requests
+from fastapi import APIRouter
 from dotenv import load_dotenv
 
-from fastapi import APIRouter
 from src.utils.format import (
     format_money,
     format_porcent,
@@ -16,37 +17,61 @@ router = APIRouter()
 logging.basicConfig(level=logging.ERROR)
 
 API_KEY = os.getenv("COINGECKO_API_KEY")
-URL = "https://api.coingecko.com/api/v3/"
+API_URL = os.getenv("COINGECKO_API_URL")
 
 
-def get_api_overview():
-    url_overview = f"{URL}global"
+def get_api_overview(retries: int = 3, delay: float = 2.0) -> dict[str, str] | None:
+    """Get global cryptocurrency market data from CoinGecko.
+
+    Parameters:
+        retries (int): Number of retry attempts if request fails (default 3).
+        delay (float): Seconds to wait between retries (default 2.0).
+
+    Returns:
+        dict[str, str]: Market overview with formatted strings:
+            - marketcap: Total market cap (e.g., '$1,234,567.89')
+            - volume: Total 24h volume (e.g., '$234,567.89')
+            - btc_dom: BTC dominance percentage (e.g., '%45.67')
+            - eth_dom: ETH dominance percentage (e.g., '%13.13')
+        None: If all attempts fail.
+    """
+    url_overview = f"{API_URL}global"
     headers = {"X-CoinGecko-Api-Key": API_KEY}
 
-    try:
-        response = requests.get(url_overview, headers=headers)
-        response.raise_for_status()
-        data = response.json()
+    for attempt in range(1, retries + 1):
+        try:
+            response = requests.get(url_overview, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
 
-        marketcap = data["data"]["total_market_cap"]["usd"]
-        volume = data["data"]["total_volume"]["usd"]
-        btc_dom = data["data"]["market_cap_percentage"]["btc"]
-        eth_dom = data["data"]["market_cap_percentage"]["eth"]
+            marketcap = data["data"]["total_market_cap"]["usd"]
+            volume = data["data"]["total_volume"]["usd"]
+            btc_dom = data["data"]["market_cap_percentage"]["btc"]
+            eth_dom = data["data"]["market_cap_percentage"]["eth"]
 
-        return {
-            "marketcap": format_money(marketcap),
-            "volume": format_money(volume),
-            "btc_dom": format_porcent(btc_dom),
-            "eth_dom": format_porcent(eth_dom),
-        }
+            return {
+                "marketcap": format_money(marketcap),
+                "volume": format_money(volume),
+                "btc_dom": format_porcent(btc_dom),
+                "eth_dom": format_porcent(eth_dom),
+            }
 
-    except requests.exceptions.RequestException as error:
-        logging.error("Error in request: %s", error)
-        data = None
+        except requests.exceptions.RequestException as error:
+            logging.error(
+                "Attempt %d/%d failed: %s (URL: %s)",
+                attempt,
+                retries,
+                error,
+                url_overview,
+            )
+            if attempt < retries:
+                time.sleep(delay)
+            else:
+                return None
 
 
 def get_api_topcoins(limit=10, currency="usd"):
-    url_topcoins = f"{URL}coins/markets"
+    url_topcoins = f"{API_URL}coins/markets"
     headers = {"X-CoinGecko-Api-Key": API_KEY}
     params = {
         "vs_currency": currency,
@@ -96,7 +121,7 @@ def get_api_topcoins(limit=10, currency="usd"):
 
 
 def get_api_market_chart(coin_id, days=30, currency="usd"):
-    url = f"{URL}coins/{coin_id}/market_chart"
+    url = f"{API_URL}coins/{coin_id}/market_chart"
     params = {"vs_currency": currency, "days": days}
 
     try:

@@ -20,18 +20,28 @@ router = APIRouter(prefix="/coingecko/api", tags=["Coingecko API"])
     "/overview",
     summary="Fetch CoinGecko API Overview",
     description=(
-        "Retrieves the latest overview data from the CoinGecko API, "
-        "including market dominance, total market capitalization, "
-        "and trading volumes for major cryptocurrencies."
+        "Fetches the latest global cryptocurrency market overview from CoinGecko, "
+        "including total market capitalization, 24h trading volume, "
+        "and BTC/ETH dominance percentages."
     ),
     response_model=CoinGeckoOverviewModel,
     responses=ERROR_RESPONSES,
 )
-def get_api_coingecko_overview():
-    data = get_api_overview()
+def get_api_coingecko_overview(
+    retries: int = Query(
+        3, ge=1, description="Number of retry attempts if request fails"
+    ),
+    delay: float = Query(
+        2.0, ge=0.0, description="Seconds to wait between retry attempts"
+    ),
+):
+    """Endpoint to retrieve global cryptocurrency overview."""
+    data = get_api_overview(retries=retries, delay=delay)
 
     if not data:
-        raise HTTPException(status_code=500, detail="Unable to fetch data")
+        raise HTTPException(
+            status_code=500, detail="Unable to fetch data from CoinGecko API"
+        )
     return data
 
 
