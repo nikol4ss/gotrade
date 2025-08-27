@@ -4,7 +4,12 @@ import requests
 from dotenv import load_dotenv
 
 from fastapi import APIRouter
-from src.utils.format import format_money, format_porcent, format_number_short, format_dollar_invert
+from src.utils.format import (
+    format_money,
+    format_porcent,
+    format_number_short,
+    format_dollar_invert,
+)
 
 load_dotenv()
 router = APIRouter()
@@ -62,20 +67,24 @@ def get_api_topcoins(limit=10, currency="usd"):
             result.append(
                 {
                     "name": coin["name"],
+                    "logo": coin["image"],
                     "symbol": coin["symbol"].upper(),
-                    "price": f"${coin['current_price']:,.2f}",
-                    "volume": format_number_short(coin["total_volume"]),
                     "display_name": f"{coin['symbol'].upper()} - {coin['name']}",
+                    "price": format_money(coin["current_price"]),
                     "market_cap": format_number_short(coin["market_cap"]),
+                    "volume": format_number_short(coin["total_volume"]),
                     "market_cap_rank": coin["market_cap_rank"],
-                    "price_change_24h": format_dollar_invert(f"${coin['price_change_24h']:,.2f}"),
-                    "price_change_percentage_24h": f"{coin['price_change_percentage_24h']:.2f}%",
-                    "high_24h": f"${coin['high_24h']:,.2f}",
-                    "low_24h": f"${coin['low_24h']:,.2f}",
+                    "price_change_percentage_24h": format_money(
+                        coin["price_change_percentage_24h"]
+                    ),
+                    "price_change_24h": format_dollar_invert(
+                        format_money(coin["price_change_24h"])
+                    ),
+                    "high_24h": format_money(coin["high_24h"]),
+                    "low_24h": format_money(coin["low_24h"]),
                     "circulating_supply": format_number_short(
                         coin["circulating_supply"]
                     ),
-                    "logo": coin["image"],
                 }
             )
 
@@ -86,13 +95,19 @@ def get_api_topcoins(limit=10, currency="usd"):
         return None
 
 
-# def get_market_chart(coin_id, days=30, vs_currency="usd"):
-#     """Histórico de preço, market cap e volume"""
-#     url = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart"
-#     params = {"vs_currency": vs_currency, "days": days}
-#     res = requests.get(url, params=params)
-#     res.raise_for_status()
-#     return res.json()  # retorna prices, market_caps, total_volumes
+def get_api_market_chart(coin_id, days=30, currency="usd"):
+    url = f"{URL}coins/{coin_id}/market_chart"
+    params = {"vs_currency": currency, "days": days}
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+
+        return response.json()
+
+    except requests.exceptions.RequestException as error:
+        logging.error("Error in request: %s", error)
+        return None
 
 
 # def get_crypto_sectors():

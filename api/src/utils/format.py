@@ -1,19 +1,43 @@
 def format_money(value: float) -> str:
+    """Format to US dollar currency format.
+
+    Parameters:
+        value (float): Numeric value to be formatted.
+
+    Returns:
+        str: Formatted string (e.g., 1234.5 -> '$1,234.50').
+    """
     return f"${value:,.2f}"
 
 
-def format_number_short(n):
-    if n >= 1_000_000_000:
-        return f"${n/1_000_000_000:.2f}B"
-    elif n >= 1_000_000:
-        return f"${n/1_000_000:.2f}M"
-    elif n >= 1_000:
-        return f"${n/1_000:.2f}K"
+def format_number_short(number: float) -> str:
+    """Format the number into a short sequence of values.
+
+    Parameters:
+        number (float): Float value for format.
+
+    Returns:
+        str: Short string (e.g., 1500 -> '$1.50K').
+    """
+    if number >= 1_000_000_000:
+        return f"${number/1_000_000_000:.2f}B"
+    elif number >= 1_000_000:
+        return f"${number/1_000_000:.2f}M"
+    elif number >= 1_000:
+        return f"${number/1_000:.2f}K"
     else:
-        return str(n)
+        return str(number)
 
 
 def format_dollar_invert(value: str) -> str:
+    """Invert dollar sign and negative sign.
+
+    Parameters:
+        value (str): Dollar string (e.g., '$-123.45' or '-$123.45').
+
+    Returns:
+        str: Inverted string (e.g., '$-123.45' -> '-$123.45').
+    """
     if value.startswith("$-"):
         return "-$" + value[2:]
     elif value.startswith("-$"):
@@ -21,39 +45,13 @@ def format_dollar_invert(value: str) -> str:
     return value
 
 
-def map_selector(symbol):
-    symbol = symbol.upper()
+def format_porcent(value: float) -> str:
+    """Format a float as a percentage string.
 
-    # Store of Value / Payment
-    if symbol in ["BTC", "LTC", "BCH", "DOGE"]:
-        return "Store of Value / Payment"
+    Parameters:
+        value (float): Numeric value to format.
 
-    # Smart Contracts
-    if symbol in ["ETH", "SOL", "ADA", "AVAX", "BNB"]:
-        return "Smart Contracts"
-
-    # Stablecoins
-    if symbol in ["USDT", "USDC", "DAI", "BUSD", "FDUSD"]:
-        return "Stablecoins"
-
-    # DeFi
-    if symbol in ["UNI", "AAVE", "MKR"]:
-        return "DeFi"
-
-    # Infrastructure / Layer 2
-    if symbol in ["MATIC", "OP", "ARB"]:
-        return "Infrastructure / L2"
-
-    # Meme / Community Coins
-    if symbol in ["MEME", "SHIB", "DOGE"]:
-        return "Meme / Community"
-
-    # Utility / Tokens específicos
-    if symbol in ["BIO", "XRP"]:
-        return "Utility / Payment Network"
-
-    return "Others"
-
-
-def format_porcent(value: float):
+    Returns:
+        str: Percentage string (e.g., 12.345 -> '%12.35').
+    """
     return f"%{value:.2f}"

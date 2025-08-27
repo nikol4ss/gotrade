@@ -65,17 +65,20 @@ function parseNumber(value: string | number) {
               : parseNumber(row[col.key]) < 0
                 ? 'text-red-800 inline-flex items-center gap-1'
                 : 'text-muted-foreground inline-flex items-center gap-2'">
+
               <svg v-if="parseNumber(row[col.key]) > 0" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 5l5 5H5l5-5z" />
               </svg>
+
               <svg v-else-if="parseNumber(row[col.key]) < 0" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 15l-5-5h10l-5 5z" />
               </svg>
+
               <svg v-else class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <circle cx="10" cy="10" r="3" />
               </svg>
 
-              {{ row[col.key].replace('$-0.00', '$0.00').replace('-0.00%', '0.00%') }}
+              {{ row[col.key].replace('-$0.00', '$0.00').replace('-0.00%', '0.00%') }}
             </span>
           </template>
 
