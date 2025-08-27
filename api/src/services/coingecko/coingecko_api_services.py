@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from src.utils.format import (
     format_money,
     format_porcent,
+    format_prices_only,
     format_number_short,
     format_dollar_invert,
 )
@@ -159,45 +160,47 @@ def get_api_topcoins(
                 return None
 
 
-def get_api_market_chart(coin_id, days=30, currency="usd"):
+def get_api_market_chart(
+    coin_id: str,
+    days: int = 30,
+    currency: str = "usd",
+    retries: int = 3,
+    delay: float = 2.0,
+) -> dict | None:
+    """Get historical market chart data for a specific coin from CoinGecko.
+
+    Parameters:
+        coin_id (str): Coin identifier (e.g., 'bitcoin', 'ethereum').
+        days (int): Number of days of historical data (default 30).
+        currency (str): Currency to display prices in (default 'usd').
+        retries (int): Number of retry attempts if request fails (default 3).
+        delay (float): Seconds to wait between retry attempts (default 2.0).
+
+    Returns:
+        dict: Market chart data with formatted prices:
+            {
+                "coin_id": str,
+                "prices": [...]
+            }
+        None: If request fails after all retries.
+    """
     url = f"{API_URL}coins/{coin_id}/market_chart"
     params = {"vs_currency": currency, "days": days}
 
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
+    for attempt in range(1, retries + 1):
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            market_chart = response.json()
 
-        return response.json()
+            formatted_prices = format_prices_only(market_chart)
+            return {"coin_id": coin_id, "prices": formatted_prices}
 
-    except requests.exceptions.RequestException as error:
-        logging.error("Error in request: %s", error)
-        return None
-
-
-# def get_crypto_sectors():
-#     """Categorias / setores de criptos"""
-#     url = "https://api.coingecko.com/api/v3/coins/categories"
-#     res = requests.get(url)
-#     res.raise_for_status()
-#     categories = res.json()
-#     result = []
-#     for cat in categories:
-#         result.append(
-#             {
-#                 "id": cat["id"],
-#                 "name": cat["name"],
-#                 "market_cap": cat["market_cap"],
-#                 "volume_24h": cat["volume_24h"],
-#                 "market_cap_change_24h": cat.get("market_cap_change_24h"),
-#             }
-#         )
-#     return result
-
-
-# def get_total_cryptos():
-#     """Número total de criptos ativas"""
-#     url = "https://api.coingecko.com/api/v3/coins/list"
-#     res = requests.get(url)
-#     res.raise_for_status()
-#     coins = res.json()
-#     return len(coins)
+        except requests.exceptions.RequestException as error:
+            logging.error(
+                "Attempt %d/%d failed: %s (URL: %s)", attempt, retries, error, url
+            )
+            if attempt < retries:
+                time.sleep(delay)
+            else:
+                return None

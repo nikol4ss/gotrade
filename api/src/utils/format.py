@@ -1,3 +1,7 @@
+from datetime import datetime
+from typing import List, Dict
+
+
 def format_money(value: float) -> str:
     """Format to US dollar currency format.
 
@@ -55,3 +59,34 @@ def format_porcent(value: float) -> str:
         str: Percentage string (e.g., 12.345 -> '%12.35').
     """
     return f"%{value:.2f}"
+
+
+def format_prices_only(market_chart: dict) -> List[Dict[str, float]]:
+    """Convert raw CoinGecko market chart data to a list of dicts with date and price.
+
+    Parameters:
+        market_chart (dict): Raw market chart data from CoinGecko, expected to contain:
+            {
+                "prices": [[timestamp, price], ...],
+                "market_caps": [...],
+                "total_volumes": [...]
+            }
+
+    Returns:
+        List[Dict[str, float]]: List of dicts with formatted dates and prices, e.g.:
+            [
+                {"date": "2025-08-27 09:00", "price": 34567.89},
+                {"date": "2025-08-27 10:00", "price": 34612.34},
+                ...
+            ]
+    """
+    result = []
+    for timestamp, price in market_chart.get("prices", []):
+        dt = datetime.fromtimestamp(timestamp / 1000)
+        result.append(
+            {
+                "date": dt.strftime("%Y-%m-%d %H:%M"),
+                "price": price,
+            }
+        )
+    return result

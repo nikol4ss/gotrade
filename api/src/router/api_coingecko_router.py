@@ -10,6 +10,7 @@ from src.services.coingecko.coingecko_api_services import (
 
 from src.models.coingecko.docs_coingecko_models import (
     CoinGeckoOverviewModel,
+    MarketChartModel,
     TopCoinModel,
 )
 
@@ -78,21 +79,44 @@ def get_api_coingecko_topcoins(
     return data
 
 
+from fastapi import Query, HTTPException
+
+
 @router.get(
     "/marketchart",
-    summary="Fetch CoinGecko Market Chart Data",
+    summary="Fetch CoinGecko API Market Chart",
     description=(
         "Retrieves historical market data for a specific cryptocurrency from CoinGecko, "
         "including price, market capitalization, and trading volume over a specified number of days."
     ),
+    response_model=MarketChartModel,
     responses=ERROR_RESPONSES,
 )
 def get_api_coingecko_market_chart(
     coin_id: str = Query(..., description="The CoinGecko ID of the cryptocurrency"),
-    days: int = Query(30, description="Number of past days to retrieve data for"),
+    days: int = Query(
+        ..., ge=1, description="Number of past days to retrieve data for"
+    ),
     currency: str = Query("usd", description="Currency to display prices in"),
+    retries: int = Query(
+        3, ge=1, description="Number of retry attempts if request fails"
+    ),
+    delay: float = Query(
+        2.0, ge=0.0, description="Seconds to wait between retry attempts"
+    ),
 ):
-    data = get_api_market_chart(coin_id=coin_id, days=days, currency=currency)
+    """Endpoint to retrieve historical market chart data for a cryptocurrency."""
+    data = get_api_market_chart(
+        coin_id=coin_id, days=days, currency=currency, retries=retries, delay=delay
+    )
+
     if not data:
-        raise HTTPException(status_code=500, detail="Unable to fetch market chart data")
-    return data
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to fetch market chart data from CoinGecko API",
+        )
+
+    return {
+        "coin_id": coin_id,
+        "prices": data.get("prices", []),
+    }
