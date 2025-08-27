@@ -9,7 +9,6 @@ class CoinGeckoOverviewModel(BaseModel):
 
 
 class TopCoinModel(BaseModel):
-    id: str
     name: str
     symbol: str
     display_name: str

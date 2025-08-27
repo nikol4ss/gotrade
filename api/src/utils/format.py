@@ -86,7 +86,7 @@ def format_prices_only(market_chart: dict) -> List[Dict[str, float]]:
         result.append(
             {
                 "date": dt.strftime("%Y-%m-%d %H:%M"),
-                "price": price,
+                "price": format_money(price),
             }
         )
     return result
