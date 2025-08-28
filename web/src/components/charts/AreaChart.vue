@@ -10,7 +10,13 @@ interface ChartData {
 const props = defineProps({
   data: { type: Array as PropType<ChartData[]>, required: true },
   categories: { type: Array as PropType<string[]>, required: true },
-  colors: { type: Array as PropType<string[]>, default: () => ['blue', 'pink', 'orange', 'red'] }
+  colors: {
+    type: Array as PropType<string[]>, default: () => ['#1E293B',
+      '#475569',
+      '#64748B',
+      '#94A3B8',
+      '#F1F5F9']
+  }
 })
 </script>
 

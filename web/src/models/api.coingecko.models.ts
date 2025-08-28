@@ -21,3 +21,16 @@ export interface CoinGeckoCoin {
   circulating_supply: string;
 }
 
+export interface CoinGeckoMarketChartPrice {
+  date: string;
+  price: string;
+}
+
+export interface CoinGeckoMarketChart {
+  coin_id: string;
+  prices: CoinGeckoMarketChartPrice[];
+}
+
+export interface DropdownMenuCheckboxItemProps {
+  text1: string,
+}

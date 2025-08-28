@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import type { CoinGeckoOverview, CoinGeckoCoin  } from "@/models/api.coingecko.models";
+import type { CoinGeckoOverview, CoinGeckoCoin, CoinGeckoMarketChart  } from "@/models/api.coingecko.models";
 
 const api = axios.create({
   baseURL: "http://127.0.0.1:8000/coingecko/api",
@@ -69,8 +69,45 @@ export async function getApiCoinGeckoTopCoins(
 }
 
 
-// export async function getApiCoinGeckoMarkeChart(coin_id: string, days: number) {
-//     // http://127.0.0.1:8000/coingecko/api/marketchart?coin_id=bitcoin&days=5&currency=usd&retries=3&delay=2
-
-//     try
-// }
+/**
+ * Fetches market chart data for a specific coin from CoinGecko with retry logic.
+ *
+ * @param coin_id - ID of the cryptocurrency (e.g., "bitcoin")
+ * @param days - Number of days for the chart data
+ * @param currency - Currency for prices (default: "usd")
+ * @param retries - Number of retry attempts (default: 3)
+ * @param delay - Delay between retries in seconds (default: 2)
+ * @returns {Promise<CoinGeckoMarketChart>} Market chart data
+ * @throws {Error} Failed to fetch market chart after retries
+ */
+export async function getApiCoinGeckoMarketChart(
+  coin_id: string,
+  days: number,
+  currency: string = "usd",
+  retries: number = 3,
+  delay: number = 2
+): Promise<CoinGeckoMarketChart> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await api.get<CoinGeckoMarketChart>(
+        `/marketchart?coin_id=${coin_id}&days=${days}&currency=${currency}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          `API Error (attempt ${attempt + 1} for ${coin_id}):`,
+          error.response?.data || error.message
+        );
+      }
+      if (attempt < retries - 1) {
+        await new Promise(res => setTimeout(res, delay * 1000));
+      } else {
+        throw new Error(
+          `Failed to fetch market chart for ${coin_id} after ${retries} retries`
+        );
+      }
+    }
+  }
+  throw new Error("Unexpected error in getApiCoinGeckoMarketChart");
+}

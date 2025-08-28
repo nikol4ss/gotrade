@@ -56,7 +56,7 @@ function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
     <ChartLegend v-if="showLegend" v-model:items="legendItems" @legend-item-click="handleLegendItemClick" />
 
     <VisXYContainer
-      :margin="{ left: 20, right: 20 }"
+      :margin="{ left: 1, right: 1 }"
       :data="data"
       :style="{ height: isMounted ? '100%' : 'auto' }"
     >
