@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import {
   Coins,
+  CalendarSearch,
   Percent,
   DollarSign,
   TrendingUp,
@@ -38,6 +39,16 @@ const quotation = ref<CoinGeckoCoin[]>([])
 const marketChart = ref<CoinGeckoMarketChart>()
 const loading = ref(true)
 
+const timeOptions: { [key: string]: number } = {
+  "20": 20,
+  "40": 40,
+  "60": 60,
+  "80": 80,
+  "100": 100,
+};
+
+const chartCategories = ['BTC']
+
 interface ChartData {
   [key: string]: number | string
 }
@@ -49,9 +60,6 @@ const chartData = computed<ChartData[]>(() => {
     BTC: Number(p.price.replace(/[$,]/g, '')),
   }))
 })
-
-const chartCategories = ['BTC']
-const numbers = [20, 40, 60, 80, 100]
 
 onMounted(async () => {
   try {
@@ -75,6 +83,8 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-1 flex-col gap-5 p-2 pt-0">
+
+    <!-- Overview -->
     <div class="grid auto-rows-min gap-5 md:grid-cols-3">
       <div class="rounded-xl bg-muted/50 p-3 flex flex-col">
         <h2 class="text-sm font-medium flex items-center justify-between">
@@ -152,6 +162,7 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- Quotes -->
     <div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4 flex flex-col">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1 ">
@@ -189,6 +200,7 @@ onMounted(async () => {
       ]" />
     </div>
 
+    <!-- Price Time Series -->
     <div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4 flex flex-col">
       <div class="flex items-center gap-2 mb-2">
         <TrendingUp class="w-4" />
@@ -199,35 +211,38 @@ onMounted(async () => {
         <LoaderCircleIcon class="size-3 animate-spin" />
         Fetching updated data
       </div>
+      <div v-else>
+        <div class="flex flex-col justify-center items-center">
+          <div>
+            <div class="space-y-1">
+              <p class="text-sm flex items-center text-muted-foreground">
+                <CalendarSearch class="w-4 mr-1" />
+                Choose a cryptocurrency and period (in days) for the price time series.
+              </p>
+            </div>
+            <Separator class="my-4" />
+            <div class="flex h-5 items-center space-x-4 text-sm ">
+              <Toggle v-for="coin in quotation" :key="coin.name" :value="coin.name" aria-label="Toggle"
+                class="rounded-xl ml-2 cursor-pointer">
+                <img v-if="coin.logo" :src="coin.logo" :alt="coin.display_name" class="w-4 h-4 " />
+                <span>{{ coin.symbol }}</span>
+              </Toggle>
 
-      <div class="flex items-center">
-        <div>
-          <div class="space-y-1">
-            <p class="text-sm text-muted-foreground">
-              An open-source UI component library.
-            </p>
+              <Separator orientation="vertical" />
+
+              <Toggle v-for="num in timeOptions" :key="num" :value="num" aria-label="Toggle"
+                class="rounded-xl cursor-pointer ml-3 border">
+                <span>{{ num }}</span>
+              </Toggle>
+            </div>
+            <Separator class="my-4" />
           </div>
-          <Separator class="my-4" />
-          <div class="flex h-5 items-center space-x-4 text-sm">
-            <Toggle v-for="coin in quotation" :key="coin.name" :value="coin.name" aria-label="Toggle"
-              class="rounded-xl ml-2">
-              <img v-if="coin.logo" :src="coin.logo" :alt="coin.display_name" class="w-4 h-4 " />
-              <span>{{ coin.symbol }}</span>
-            </Toggle>
-
-            <Separator orientation="vertical" />
-
-            <Toggle v-for="num in numbers" :key="num" :value="num" aria-label="Toggle" class="rounded-xl ml-3 border">
-              <span>{{ num }}</span>
-            </Toggle>
-          </div>
-          <Separator class="my-4" />
         </div>
-      </div>
 
-      <div class="flex justify-center pr-5">
-        <LineChart :data="chartData" index="year" :categories="chartCategories"
-          :y-formatter="(tick) => `$${tick.toLocaleString()}`" class="w-full" />
+        <div class="flex justify-center pr-5">
+          <LineChart :data="chartData" index="year" :categories="chartCategories"
+            :y-formatter="(tick) => `$${tick.toLocaleString()}`" class="w-full" />
+        </div>
       </div>
     </div>
   </div>
