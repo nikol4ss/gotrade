@@ -62,10 +62,12 @@ def format_porcent(value: float) -> str:
 
 
 def format_prices_only(market_chart: dict) -> List[Dict[str, float]]:
-    """Convert raw CoinGecko market chart data to a list of dicts with date and price.
+    """Convert raw CoinGecko market chart data to a
+        list of dicts with date and price.
 
     Parameters:
-        market_chart (dict): Raw market chart data from CoinGecko, expected to contain:
+        market_chart (dict): Raw market chart data from CoinGecko,
+        expected to contain:
             {
                 "prices": [[timestamp, price], ...],
                 "market_caps": [...],
@@ -73,7 +75,8 @@ def format_prices_only(market_chart: dict) -> List[Dict[str, float]]:
             }
 
     Returns:
-        List[Dict[str, float]]: List of dicts with formatted dates and prices, e.g.:
+        List[Dict[str, float]]: List of dicts with formatted dates and prices,
+        e.g.:
             [
                 {"date": "2025-08-27 09:00", "price": 34567.89},
                 {"date": "2025-08-27 10:00", "price": 34612.34},

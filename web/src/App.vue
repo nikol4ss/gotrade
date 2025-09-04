@@ -3,6 +3,6 @@
 
 <template>
   <router-view />
-  <router-link to="/market">Market</router-link>
-  <router-link to="/">Dashboard</router-link>
+  <router-link to="/market"></router-link>
+  <router-link to="/"></router-link>
 </template>

@@ -21,7 +21,8 @@ API_KEY = os.getenv("COINGECKO_API_KEY")
 API_URL = os.getenv("COINGECKO_API_URL")
 
 
-def get_api_overview(retries: int = 3, delay: float = 2.0) -> dict[str, str] | None:
+def get_api_overview(retries: int = 3,
+                     delay: float = 2.0) -> dict[str, str] | None:
     """Get global cryptocurrency market data from CoinGecko.
 
     Parameters:
@@ -72,8 +73,8 @@ def get_api_overview(retries: int = 3, delay: float = 2.0) -> dict[str, str] | N
 
 
 def get_api_topcoins(
-    limit: int = 10, currency: str = "usd", retries: int = 3, delay: float = 2.0
-) -> list[dict[str, str]] | None:
+    limit: int = 10, currency: str = "usd",
+        retries: int = 3, delay: float = 2.0) -> list[dict[str, str]] | None:
     """Fetch top cryptocurrencies by market capitalization from CoinGecko.
 
     Parameters:
@@ -125,7 +126,9 @@ def get_api_topcoins(
                         "name": coin["name"],
                         "logo": coin["image"],
                         "symbol": coin["symbol"].upper(),
-                        "display_name": f"{coin['symbol'].upper()} - {coin['name']}",
+                        "display_name": (
+                                f"{coin['symbol'].upper()} - {coin['name']}"
+                        ),
                         "price": format_money(coin["current_price"]),
                         "market_cap": format_number_short(coin["market_cap"]),
                         "volume": format_number_short(coin["total_volume"]),
@@ -198,7 +201,8 @@ def get_api_market_chart(
 
         except requests.exceptions.RequestException as error:
             logging.error(
-                "Attempt %d/%d failed: %s (URL: %s)", attempt, retries, error, url
+                "Attempt %d/%d failed: %s (URL: %s)",
+                attempt, retries, error, url
             )
             if attempt < retries:
                 time.sleep(delay)

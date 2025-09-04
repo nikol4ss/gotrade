@@ -93,6 +93,7 @@ export async function getApiCoinGeckoMarketChart(
         `/marketchart?coin_id=${coin_id}&days=${days}&currency=${currency}`
       );
       return response.data;
+
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error(

@@ -1,111 +1,136 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+
+import { getApiCoinGeckoOverview, getApiCoinGeckoTopCoins, getApiCoinGeckoMarketChart } from '@/services/api.coingecko.services'
+import type { CoinGeckoChartData, CoinGeckoOverview, CoinGeckoCoin, CoinGeckoMarketChart } from '@/models/api.coingecko.models'
 
 import {
   Coins,
-  CalendarSearch,
   Percent,
   DollarSign,
   TrendingUp,
+  CalendarSearch,
   LoaderCircleIcon,
-  CircleQuestionMark,
+  CircleQuestionMark
 } from 'lucide-vue-next'
 
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card'
 import { Toggle } from '@/components/ui/toggle'
 import { Separator } from '@/components/ui/separator'
 
-import Quotation from '@/components/charts/Quotation.vue'
 import LineChart from '@/components/charts/LineChart.vue'
+import Quotation from '@/components/charts/Quotation.vue'
 
-import {
-  getApiCoinGeckoOverview,
-  getApiCoinGeckoTopCoins,
-  getApiCoinGeckoMarketChart,
-} from '@/services/api.coingecko.services'
-
-import type {
-  CoinGeckoCoin,
-  CoinGeckoOverview,
-  CoinGeckoMarketChart,
-} from '@/models/api.coingecko.models'
 
 const overview = ref<CoinGeckoOverview>()
 const quotation = ref<CoinGeckoCoin[]>([])
-const marketChart = ref<CoinGeckoMarketChart>()
-const loading = ref(true)
+const marketDataMap = ref<Record<string, CoinGeckoMarketChart>>({})
 
-const timeOptions: { [key: string]: number } = {
-  "20": 20,
-  "40": 40,
-  "60": 60,
-  "80": 80,
-  "100": 100,
-};
+const selectedDay = ref<string | null>(null)
+const selectedCoins = ref<string[]>([])
+const loadingOverview = ref(true)
+const loadingChart = ref(false)
 
-const chartCategories = ['BTC']
+const chartDays = ["20", "40", "60", "80", "100"]
 
-interface ChartData {
-  [key: string]: number | string
+const chartCategories = computed(() => selectedCoins.value.map(c => c.toUpperCase()))
+
+function parsePrice(p: unknown): number {
+
+  if (typeof p === 'number') return Number.isFinite(p) ? p : 0;
+  if (typeof p !== 'string') return 0;
+
+  const s = p.trim();
+
+  // pt-BR: "R$ 112.471,39"
+  if (/[,]/.test(s) && !/[.]\d{2}$/.test(s)) {
+    // remove tudo menos dígitos, ponto, vírgula e sinal; tira separador de milhar ".", troca "," por "."
+    const normalized = s.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+    const n = Number(normalized);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // en-US: "$112,471.39"
+  const normalized = s.replace(/[^\d.-]/g, '');
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : 0;
 }
 
-const chartData = computed<ChartData[]>(() => {
-  if (!marketChart.value) return []
-  return marketChart.value.prices.map(p => ({
-    year: p.date,
-    BTC: Number(p.price.replace(/[$,]/g, '')),
-  }))
-})
+
+const chartData = computed<CoinGeckoChartData[]>(() => {
+  if (!selectedDay.value || selectedCoins.value.length === 0) return [];
+
+  const datasets = selectedCoins.value.map(
+    c => marketDataMap.value[c.toLowerCase()]?.prices ?? []
+  );
+  if (datasets.every(d => d.length === 0)) return [];
+
+  const maxLength = Math.max(...datasets.map(d => d.length));
+  const data: CoinGeckoChartData[] = [];
+
+  for (let i = 0; i < maxLength; i++) {
+    const row: CoinGeckoChartData = {};
+
+    row["date"] = datasets[0][i]?.date || "";
+
+    selectedCoins.value.forEach((coin, idx) => {
+      const priceItem = datasets[idx][i];
+      row[coin.toUpperCase()] = priceItem ? parsePrice(priceItem.price) : 0;
+    });
+
+    data.push(row);
+  }
+
+  return data;
+});
+
+const isDisabledCrypto = (coinName: string) => selectedCoins.value.length >= 3 && !selectedCoins.value.includes(coinName)
+const isDisabledDay = (day: string) => selectedDay.value !== null && selectedDay.value !== day
 
 onMounted(async () => {
   try {
     const [overviewData, quotationData] = await Promise.all([
       getApiCoinGeckoOverview(),
-      getApiCoinGeckoTopCoins(),
+      getApiCoinGeckoTopCoins()
     ])
-
-    const [marketChartData] = await Promise.all([
-      getApiCoinGeckoMarketChart('bitcoin', 5),
-    ])
-
     overview.value = overviewData
     quotation.value = quotationData
-    marketChart.value = marketChartData
   } finally {
-    loading.value = false
+    loadingOverview.value = false
   }
+})
+
+watch([selectedCoins, selectedDay], async ([coins, days]) => {
+  if (coins.length === 0 || !days) return
+  loadingChart.value = true
+
+  const promises = coins.map(coin =>
+    getApiCoinGeckoMarketChart(coin.toLowerCase(), Number(days))
+  )
+  const results = await Promise.all(promises)
+
+  coins.forEach((c, idx) => {
+    marketDataMap.value[c.toLowerCase()] = results[idx]
+  })
+
+  loadingChart.value = false
 })
 </script>
 
 <template>
   <div class="flex flex-1 flex-col gap-5 p-2 pt-0">
-
     <!-- Overview -->
     <div class="grid auto-rows-min gap-5 md:grid-cols-3">
       <div class="rounded-xl bg-muted/50 p-3 flex flex-col">
         <h2 class="text-sm font-medium flex items-center justify-between">
           <span class="flex items-center">
-            <Coins class="mr-2 w-4" />
-            Market Cap
+            <Coins class="mr-2 w-4" /> Market Cap
           </span>
-          <HoverCard>
-            <HoverCardTrigger>
-              <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
-            </HoverCardTrigger>
-            <HoverCardContent class="text-xs text-justify text-muted-foreground">
-              Total value of all cryptocurrencies in circulation, representing the combined market capitalization.
-            </HoverCardContent>
-          </HoverCard>
+          <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
         </h2>
         <div class="flex items-center justify-between mt-6">
-          <div v-if="loading" class="flex items-center gap-1 text-xs text-muted-foreground">
-            <LoaderCircleIcon class="size-3 animate-spin " />
-            Fetching updated data
-          </div>
+          <span v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+            <LoaderCircleIcon class="size-3 animate-spin" /> Loading...
+          </span>
           <span v-else class="text-2xl font-bold">{{ overview?.marketcap }}</span>
         </div>
       </div>
@@ -113,23 +138,14 @@ onMounted(async () => {
       <div class="rounded-xl bg-muted/50 p-3 flex flex-col">
         <h2 class="text-sm font-medium flex items-center justify-between">
           <span class="flex items-center">
-            <TrendingUp class="mr-2 w-4" />
-            24h Volume
+            <TrendingUp class="mr-2 w-4" /> 24h Volume
           </span>
-          <HoverCard>
-            <HoverCardTrigger>
-              <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
-            </HoverCardTrigger>
-            <HoverCardContent class="text-xs text-justify text-muted-foreground">
-              Total value of all cryptocurrency transactions executed in the past 24 hours across the market.
-            </HoverCardContent>
-          </HoverCard>
+          <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
         </h2>
         <div class="flex items-center justify-between mt-6">
-          <div v-if="loading" class="flex items-center gap-1 text-xs text-muted-foreground">
-            <LoaderCircleIcon class="size-3 animate-spin" />
-            Fetching updated data
-          </div>
+          <span v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+            <LoaderCircleIcon class="size-3 animate-spin" /> Loading...
+          </span>
           <span v-else class="text-2xl font-bold">{{ overview?.volume }}</span>
         </div>
       </div>
@@ -137,23 +153,14 @@ onMounted(async () => {
       <div class="rounded-xl bg-muted/50 p-3 flex flex-col">
         <h2 class="text-sm font-medium flex items-center justify-between">
           <span class="flex items-center">
-            <Percent class="mr-2 w-4" />
-            Dominance
+            <Percent class="mr-2 w-4" /> Dominance
           </span>
-          <HoverCard>
-            <HoverCardTrigger>
-              <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
-            </HoverCardTrigger>
-            <HoverCardContent class="text-xs text-justify text-muted-foreground">
-              Percentage share of each leading cryptocurrency in the total market capitalization.
-            </HoverCardContent>
-          </HoverCard>
+          <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
         </h2>
         <div class="flex items-center justify-between mt-6">
-          <div v-if="loading" class="flex items-center gap-1 text-xs text-muted-foreground">
-            <LoaderCircleIcon class="size-3 animate-spin" />
-            Fetching updated data
-          </div>
+          <span v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+            <LoaderCircleIcon class="size-3 animate-spin" /> Loading...
+          </span>
           <span v-else class="text-2xl font-bold flex gap-1">
             BTC<div class="text-muted-foreground mr-2">{{ overview?.btc_dom }}</div>
             ETH<div class="text-muted-foreground">{{ overview?.eth_dom }}</div>
@@ -164,26 +171,13 @@ onMounted(async () => {
 
     <!-- Quotes -->
     <div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4 flex flex-col">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1 ">
-          <DollarSign class=" w-4" />
-          <h2 class="text-sm font-semibold">Quotes</h2>
-        </div>
-        <HoverCard>
-          <HoverCardTrigger>
-            <CircleQuestionMark class="w-4 cursor-help text-muted-foreground" />
-          </HoverCardTrigger>
-          <HoverCardContent class="text-xs text-justify text-muted-foreground">
-            This table shows key data for each cryptocurrency, including rank,
-            name, price, daily range, performance, market cap, trading volume,
-            and circulating supply.
-          </HoverCardContent>
-        </HoverCard>
+      <div class="flex items-center gap-1">
+        <DollarSign class="w-4" />
+        <h2 class="text-sm font-semibold">Quotes</h2>
       </div>
 
-      <div v-if="loading" class="flex items-center gap-1 text-xs text-muted-foreground">
-        <LoaderCircleIcon class="size-3 animate-spin" />
-        Fetching updated data
+      <div v-if="loadingOverview" class="flex items-center gap-1 text-xs text-muted-foreground">
+        <LoaderCircleIcon class="size-3 animate-spin" /> Loading...
       </div>
 
       <Quotation v-else :data="quotation" :columns="[
@@ -201,48 +195,52 @@ onMounted(async () => {
     </div>
 
     <!-- Price Time Series -->
-    <div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4 flex flex-col">
-      <div class="flex items-center gap-2 mb-2">
+    <div class="min-h-[50vh] flex-1 rounded-xl bg-muted/50 md:min-h-min p-4 flex flex-col">
+      <div class="flex items-center gap-2">
         <TrendingUp class="w-4" />
         <h2 class="text-sm font-semibold">Price Time Series</h2>
       </div>
 
-      <div v-if="loading" class="flex items-center gap-1 text-xs text-muted-foreground">
-        <LoaderCircleIcon class="size-3 animate-spin" />
-        Fetching updated data
+      <div v-if="loadingChart" class="flex items-center gap-1 text-xs text-muted-foreground">
+        <LoaderCircleIcon class="size-3 animate-spin" /> Loading chart...
       </div>
+
       <div v-else>
-        <div class="flex flex-col justify-center items-center">
-          <div>
-            <div class="space-y-1">
-              <p class="text-sm flex items-center text-muted-foreground">
-                <CalendarSearch class="w-4 mr-1" />
-                Choose a cryptocurrency and period (in days) for the price time series.
-              </p>
-            </div>
-            <Separator class="my-4" />
-            <div class="flex h-5 items-center space-x-4 text-sm ">
-              <Toggle v-for="coin in quotation" :key="coin.name" :value="coin.name" aria-label="Toggle"
-                class="rounded-xl ml-2 cursor-pointer">
-                <img v-if="coin.logo" :src="coin.logo" :alt="coin.display_name" class="w-4 h-4 " />
-                <span>{{ coin.symbol }}</span>
-              </Toggle>
+        <p class="text-sm flex items-center text-muted-foreground mt-2">
+          <CalendarSearch class="w-4 mr-2" />
+          Choose a cryptocurrency and period (in days)
+        </p>
 
-              <Separator orientation="vertical" />
+        <Separator class="my-4" />
 
-              <Toggle v-for="num in timeOptions" :key="num" :value="num" aria-label="Toggle"
-                class="rounded-xl cursor-pointer ml-3 border">
-                <span>{{ num }}</span>
-              </Toggle>
-            </div>
-            <Separator class="my-4" />
-          </div>
+        <div class="flex h-7 items-center justify-center space-x-6 text-sm">
+          <Toggle v-for="coin in quotation" :key="coin.name" :model-value="selectedCoins.includes(coin.name)"
+            @update:model-value="checked => {
+              if (checked && !selectedCoins.includes(coin.name)) selectedCoins.push(coin.name)
+              if (!checked) selectedCoins = selectedCoins.filter(c => c !== coin.name)
+            }" :disabled="isDisabledCrypto(coin.name)" class="rounded-xl cursor-pointer" aria-label="Toggle">
+            <img v-if="coin.logo" :src="coin.logo" :alt="coin.display_name" class="w-4 h-4" />
+            <span>{{ coin.symbol }}</span>
+          </Toggle>
+
+          <Separator orientation="vertical" />
+
+          <Toggle v-for="num in chartDays" :key="num" :model-value="selectedDay === num"
+            @update:model-value="checked => selectedDay = checked ? num : null" :disabled="isDisabledDay(num)"
+            class="rounded-xl cursor-pointer border" aria-label="Toggle">
+            <span>{{ num }}</span>
+          </Toggle>
         </div>
 
-        <div class="flex justify-center pr-5">
-          <LineChart :data="chartData" index="year" :categories="chartCategories"
-            :y-formatter="(tick) => `$${tick.toLocaleString()}`" class="w-full" />
-        </div>
+        <Separator class="my-4" />
+
+        <LineChart
+          :data="chartData"
+          index="date"
+          :categories="chartCategories"
+          :y-formatter="(tick) => `$${tick.toLocaleString()}`"
+          :x-formatter="(tick: any) => tick"
+        />
       </div>
     </div>
   </div>
